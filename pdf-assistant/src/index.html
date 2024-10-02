@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>PdfAssistant</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="https://unpkg.com/pdfjs-dist/build/pdf.min.mjs" type="module"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
+    rel="stylesheet">
+</head>
+
+<body class="background roboto-mono-font text-white">
+  <style>
+    #the-canvas {
+      border: 1px solid black;
+      direction: ltr;
+    }
+  </style>
+
+  <div id="content">
+    <app-root></app-root>
+  </div>
+
+  <script>
+    function extractBase64Images(file) {
+      return new Promise((resolve, reject) => {
+        var { pdfjsLib } = globalThis;
+        if (file && file.type === 'application/pdf') {
+          let fileReader = new FileReader();
+          let base64_representation = [];
+          pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist/build/pdf.worker.min.mjs"
+          fileReader.onload = function () {
+            let typedArray = new Uint8Array(this.result);
+            pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
+              let pagePromises = []
+              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                pagePromises.push(pdf.getPage(pageNum).then(function (page) {
+                  let viewport = page.getViewport({ scale: 1.5 });
+                  let canvas = document.createElement('canvas');
+                  let context = canvas.getContext('2d');
+
+                  canvas.height = viewport.height;
+                  canvas.width = viewport.width;
+
+                  let renderContext = {
+                    canvasContext: context,
+                    viewport: viewport,
+                  };
+
+                  page.render(renderContext).promise.then(function () {
+                    let img = document.createElement('img');
+                    img.src = canvas.toDataURL('image/png');
+                    base64_representation.push(canvas.toDataURL());
+                  });
+                }))
+              }
+
+              Promise.all(pagePromises).then(() => {
+                resolve(base64_representation)
+              }).catch((error) => {
+                reject(error)
+              })
+            });
+          };
+          fileReader.readAsArrayBuffer(file);
+        } else {
+          reject('Invalid file type')
+        }
+      }
+      )
+    }
+
+    function downloadPdf(questions) {
+      let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150');
+
+      mywindow.document.write(`<html><head><title>responses</title>`);
+      mywindow.document.write('</head><body>');
+      
+      for(let i = 0; i < questions.length; i++) {
+        mywindow.document.write(`<h3>${questions[i].question}</h3>`);
+        mywindow.document.write(`<p>${questions[i].answer}</p>`);
+      }
+
+      mywindow.document.write('</body></html>');
+
+      mywindow.document.close(); 
+      mywindow.focus(); 
+
+      mywindow.print();
+
+      return true;
+    }
+  </script>
+
+</body>
+</html>

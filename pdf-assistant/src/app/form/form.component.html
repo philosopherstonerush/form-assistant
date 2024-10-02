@@ -1,0 +1,49 @@
+
+<div class="container-fluid d-flex justify-content-center mt-5">
+    <h2>Form assistant!</h2>
+</div>
+
+<div class="container-fluid d-flex flex-column gap-3 mt-5 mb-5 mx-auto ms-2 ms-lg-5" #content>
+        <div *ngFor="let question of questions; index as i" class="question">
+            <p>
+                {{ question.question }}
+                <br>
+                <small> hint: {{ question.hint }} </small>
+            </p>
+            
+            <input type="text" class="form-control" *ngIf="question.type_of_question == 'text'" [required]="question.requried == 'true' ? true: false" style="max-width: 250px;" (change)="onChange(i, $event)">
+            
+            <textarea class="textarea" *ngIf="question.type_of_question == 'textarea'" [required]="question.requried == 'true' ? true: false" (change)="onChange(i, $event)"></textarea>
+    
+            <div *ngIf="question.type_of_question == 'checkbox'" class="form-check">
+                <div *ngFor="let opt of question.options">
+                    <input type="checkbox" class="form-check-input" id="{{ opt }}" (change)="onChange(i, $event)" name="checkbox-{{ dashify(question.question) }}">
+                    <label class="form-check-label" for="{{ opt }}">{{ opt }}</label>
+                </div>
+            </div>
+    
+            <input type="date" class="form-control" *ngIf="question.type_of_question == 'date'" [required]="question.requried == 'true' ? true: false" style="max-width: 250px;" (change)="onChange(i, $event)">
+    
+            <input type="email" class="form-control" *ngIf="question.type_of_question == 'email'" [required]="question.requried == 'true' ? true: false" style="max-width: 250px;" (change)="onChange(i, $event)">
+    
+            <input type="text" class="form-control" *ngIf="question.type_of_question == 'phone-number'" [required]="question.requried == 'true' ? true: false" style="max-width: 250px;" (change)="onChange(i, $event)">
+    
+            <div *ngIf="question.type_of_question == 'radio'" class="form-check">
+                <div *ngFor="let opt of question.options">
+                    <input type="radio" class="form-check-input" id="{{ opt }}" name="radio-{{ dashify(question.question) }}" value="{{ opt }}" (change)="onChange(i, $event)">
+                    <label class="form-check-label" for="{{ opt }}">{{ opt }}</label>
+                </div>
+            </div>
+    
+            <input type="number" class="form-control" *ngIf="question.type_of_question == 'number'" [required]="question.requried == 'true' ? true: false" style="max-width: 250px;" (change)="onChange(i, $event)">
+    
+            <input type="file" class="form-control" *ngIf="question.type_of_question == 'image'" [required]="question.requried == 'true' ? true: false" (change)="onChange(i, $event)">
+            
+        </div>
+        
+        <div class="container-fluid d-flex justify-content-center mt-3 mt-lg-0">
+            <button class="btn btn-primary" (click)="onDownloadResponse()">
+                download responses
+            </button>
+        </div>
+</div>
